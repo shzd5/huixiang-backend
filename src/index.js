@@ -52,7 +52,17 @@ app.get('/diagnose', async (req, res) => {
       results.push({ url, error: err.message })
     }
   }
-  res.json({ results })
+
+  // 检查 Python 服务器
+  let pythonStatus = 'unchecked'
+  try {
+    const pr = await fetch(`${config.pythonServer}/`, { signal: AbortSignal.timeout(3000) })
+    pythonStatus = `online (${pr.status})`
+  } catch (e) {
+    pythonStatus = `offline: ${e.message}`
+  }
+
+  res.json({ results, pythonServer: { url: config.pythonServer, status: pythonStatus } })
 })
 
 // 路由
