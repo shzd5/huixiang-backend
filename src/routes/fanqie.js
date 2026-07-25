@@ -128,12 +128,12 @@ router.get('/novel', async (req, res) => {
     res.json({ success: true, data: { bookId, title: bookInfo.title, author: bookInfo.author, totalChapters: chapters.length, successChapters: successCount, failedChapters: chapters.length - successCount, text, chapters: results.map(r => ({ index: r.index, title: r.title, success: r.success })) } })
   } catch (err) {
     console.error('[Route] 抓取失败:', err.message)
-    const isNetwork = err.message?.includes('fetch failed') || err.message?.includes('ENOTFOUND') || err.message?.includes('ECONNREFUSED')
-    res.status(500).json({
-      error: isNetwork
-        ? `代理源不可用：当前网络环境无法连接番茄小说的代理服务器。\n\n解决方案：\n1. 将后端部署到 Railway/Zeabur 等云平台可解决\n2. 也可以先用「粘贴内容」或书签工具导入小说`
-        : `抓取失败: ${err.message}`,
-    })
+    const msg = err.message
+    if (msg?.includes('页面 404')) {
+      res.status(500).json({ error: '抓取失败：链接无法访问。番茄小说 App 分享链接可能是 13 位数字 ID，需要网页版的 19 位 ID。\n\n解决方法：在浏览器打开番茄小说网页版，复制地址栏里的数字 ID 试试' })
+    } else {
+      res.status(500).json({ error: `抓取失败: ${msg || '未知错误'}` })
+    }
   }
 })
 
